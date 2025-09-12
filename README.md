@@ -9,12 +9,18 @@ Let's connect on LinkedIn!
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white)](https://www.linkedin.com/in/junfaikan/)
 
 --- 
+
+
+## 📖 Project Overview
+
 Welcome to my **SQL Data Warehouse and Analytics Project** !
 
-This project showcases an end-to-end data warehousing and analytics solution. It includes the end-to-end process of:
-- building a data warehouse (DWH), ETL pipelines for data ingestion, transformation, and integration.
-- creating data models (fact/dimension tables, star schema).
-- perfoming BI analysis and generating actionable insights.
+This project involves:
+
+1. **Data Architecture**: Designing a Data Warehouse Using the Medallion Architecture **Bronze**, **Silver**, and **Gold** layers.
+2. **ETL Pipelines**: Extracting, transforming, and loading data from source systems into the warehouse.
+3. **Data Modeling**: Developing fact and dimension tables optimized for analytical queries.
+4. **Analytics & Reporting**: Creating SQL-based reports and dashboards for actionable insights.
 
 ---
 ## 🏗️ Data Architecture
@@ -25,16 +31,6 @@ The data architecture for this project follows the Medallion Architecture **Bron
 1. **Bronze Layer**: Stores raw data as-is from the source systems. Data is ingested from CSV Files into SQL Server Database.
 2. **Silver Layer**: This layer includes data cleansing, standardization, and normalization processes to prepare data for analysis.
 3. **Gold Layer**: Houses business-ready data modeled into a star schema required for reporting and analytics.
-
----
-## 📖 Project Overview
-
-This project involves:
-
-1. **Data Architecture**: Designing a Data Warehouse Using the Medallion Architecture **Bronze**, **Silver**, and **Gold** layers.
-2. **ETL Pipelines**: Extracting, transforming, and loading data from source systems into the warehouse.
-3. **Data Modeling**: Developing fact and dimension tables optimized for analytical queries.
-4. **Analytics & Reporting**: Creating SQL-based reports and dashboards for actionable insights.
 
 
 ---
