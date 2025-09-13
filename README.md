@@ -1,5 +1,20 @@
 # Data Warehouse and Analytics Project
 
+- [🌟 About Me](#-about-me)
+- [📖 Project Overview](#-project-overview)
+- [🏗️ Data Architecture](#-data-architecture)
+- [🚀 Project Outline](#-project-outline)
+  - [🔧 Building the Data Warehouse (Data Engineering)](#-building-the-data-warehouse-data-engineering)
+  - [📊 BI: Analytics & Reporting (Data Analysis)](#-bi-analytics--reporting-data-analysis)
+- [⚙️ Execution Flow](#execution-flow)
+- [📂 Repository Structure](#-repository-structure)
+- [📊 Full Project Showcase](#-data-warehouse-and-analytics-project--full-project-showcase)
+  - [🥉 Bronze Layer](#-2-bronze-layer---raw-ingestion-scripts)
+  - [🥈 Silver Layer](#-3-silver-layer)
+  - [🥇 Gold Layer](#-4-gold-layer)
+- [🧪 Data Quality Checks](#62-quality-checks---gold-layer)
+
+
 ## 🌟 About Me
 
 Hey, I'm **JunFai Kan**. I’m a Master of Data Science graduate passionate in pursuing my career in data engineering !
@@ -16,6 +31,8 @@ Let's connect on LinkedIn!
 
 Welcome to my **SQL Data Warehouse and Analytics Project** !
 
+This project demonstrates an end-to-end Data Warehouse build using SQL Server, from raw data ingestion to business-ready reporting.
+
 This project involves:
 
 1. **Data Architecture**: Designing a Data Warehouse Using the Medallion Architecture **Bronze**, **Silver**, and **Gold** layers.
@@ -27,12 +44,12 @@ This project involves:
 
 ## 🏗️ Data Architecture
 
-The data architecture for this project follows the Medallion Architecture **Bronze**, **Silver**, and **Gold** layers:
+Designed a SQL Server Data Warehouse using the Medallion Architecture (Bronze/Silver/Gold) for raw ingestion, data standardisation, and analytics-ready data marts.
 
 ![Data Architecture](documents/dwh_project_architecture.png)
 
-1. **Bronze Layer**: Stores raw data as-is from the source systems. Data is ingested from CSV Files into SQL Server Database.
-2. **Silver Layer**: This layer includes data cleansing, standardization, and normalization processes to prepare data for analysis.
+1. **Bronze Layer**: Stores raw data as-is from the source systems. Data is ingested by loading CRM & ERP CSVs into staging for auditability and lineage.
+2. **Silver Layer**: This layer includes data cleansing, standardisation, and normalisation processes to prepare data for analysis.
 3. **Gold Layer**: Houses business-ready data modeled into a star schema required for reporting and analytics.
 
 ---
@@ -64,6 +81,20 @@ Develop SQL-based analytics to deliver detailed insights into:-
 These insights empower stakeholders with key business metrics, enabling strategic decision-making.  
 
 --- 
+
+## Execution Flow:
+
+| Action                                   | Description                                                                 |
+|------------------------------------------|-----------------------------------------------------------------------------|
+| 1. Run `init.database.sql`                  | Create the DataWarehouse database and define schemas for `bronze`, `silver`, `gold`. |
+| 2. Run `ddl_bronze.sql`                     | Define Bronze staging tables that mirror raw CSV source structures.          |
+| 3. Execute `proc_load_bronze.sql`           | Bulk load CRM and ERP CSV data into Bronze tables.                          |
+| 4. Run `ddl_silver.sql`                     | Define Silver tables with proper data types and metadata fields.            |
+| 5. Execute `proc_load_silver.sql`           | Transform and cleanse Bronze data into standardised Silver tables.          |
+| 6. Run `ddl_gold.sql`                       | Build Gold star schema views `dim_customers`, `dim_products`, `fact_sales`.|
+| 7. Run quality checks                       | Validate Silver & Gold layers with `quality_checks_silver.sql` and `quality_checks_gold.sql`. |
+| 8. Query Gold views                         | Use analytics-ready views for BI dashboards and business reporting.         |
+---
 
 ## 📂 Repository Structure
 ```
@@ -106,7 +137,7 @@ Let's Begin!
 
 ---
 
-# 📊 Data Warehouse and Analytics Project — Detailed Walkthrough  
+# 📊 Data Warehouse and Analytics Project : Full Project Showcase
 
 ## 📂 1. Datasets (`/datasets`)  
 Two raw source data representing the CRM and ERP systems are ingested into the **Bronze layer**.  
@@ -116,14 +147,14 @@ This provides the foundation for downstream ETL pipelines, enabling data lineage
 Below are the details of each source systems that are used in this Data Warehouse Project:
 
 ### CRM (`/datasets/source_crm`)  
-- `cust_info.csv`      → Customer profile details (IDs, names, demographics).  
-- `prd_info.csv`       → Product master data (IDs, names, costs, categories).  
-- `sales_details.csv`  → Sales transactions (order numbers, customer, product, dates, amounts).  
+- `cust_info.csv`      : Customer profile details (IDs, names, demographics).  
+- `prd_info.csv`       : Product master data (IDs, names, costs, categories).  
+- `sales_details.csv`  : Sales transactions (order numbers, customer, product, dates, amounts).  
 
 ### ERP (`/datasets/source_erp`)  
-- `CUST_AZ12.csv` → Additional customer attributes (birthdate, gender).  
-- `LOC_A101.csv` → Customer location data (country mapping).  
-- `PX_CAT_G1V2.csv` → Product classification (category, subcategory, maintenance).  
+- `CUST_AZ12.csv` : Additional customer attributes (birthdate, gender).  
+- `LOC_A101.csv` : Customer location data (country mapping).  
+- `PX_CAT_G1V2.csv` : Product classification (category, subcategory, maintenance).  
 
 This leads into the creation of the first script below - the creation of a database 'DateWarehouse', and schemas 'bronze', 'silver', and 'gold'.
 
@@ -430,11 +461,12 @@ The following data transformations were performed on the Bronze layer tables pri
 ### Overall Business Value of Silver Layer:
 
 - Clean, unified **customer master table** that supports segmentation, churn analysis, and personalized reporting.
-- Reliable **product master** for analyzing sales by category, lifecycle, and profitability.
+- Standardised **Product Dimension** ensures consistent joins across sales transactions, enabling accurate reporting of product hierarchies, profitability, and lifecycle trends.
 - **Transaction sales dataset** for accurate revenue reporting, sales forecasting, and performance analytics.
 - **Customer dimension table** with demographics, enabling behavioural insights and segmentation.
 - **Geographic context table** for customers, supporting regional sales analysis and market expansion insights.
 - **Standardized product category hierarchy table** that enables analysis by category, subcategory, and maintenance type.
+- Solid foundation for the **gold star schema**, ensuring analytics are built on consistent & reliable data.
 
 ---
 
@@ -1503,241 +1535,8 @@ FROM bronze.erp_px_cat_g1v2
 ```
 
 ---
-### Script 3.4 Quality Checks - Silver Layer
-Script(s): [quality_checks_silver.sql](tests/quality_checks_silver.sql)
 
-Script Purpose:
-    This script performs various quality checks for data consistency, 
-    accuracy, and standardisation across the 'silver' layer. 
-
-It includes checks for:
-
-- Null or duplicate primary keys.
-- Unwanted spaces in string fields.
-- Data standardisation and consistency.
-- Invalid date ranges and orders.
-- Data consistency between related fields.
-
-Usage Notes:
-- Run these checks after loading data into Silver layer.
-- Investigate and resolve any discrepancies found during checks.
-
-```sql
--- =============================================================
--- 1.	Checking table 'silver.crm_cust_info'
--- =============================================================
-
-------------------------------------------------------------
---		* DATA QUALITY *
--- 1.1	Check for NULL or Duplicate in ** Primary Key **
---		Expectation: No NULL or Duplicates
-------------------------------------------------------------
-SELECT
-	cst_id,
-	COUNT(*)
-FROM silver.crm_cust_info
-GROUP BY cst_id
-HAVING COUNT(*) > 1 OR cst_id IS NULL;
-
-------------------------------------------------------------
--- 1.2	Check for unwanted spaces
---		Expectation: No results
-------------------------------------------------------------
-SELECT 
-	cst_key
-FROM silver.crm_cust_info
-WHERE cst_key != TRIM(cst_key);
-
--------------------------------------------------------------------
---		* Data Standardisation & Consistency *
--- 1.3	Check the consistency of values in low cardinality columns
---------------------------------------------------------------------
-SELECT DISTINCT
-	cst_marital_status
-FROM silver.crm_cust_info;
-
-
--- =============================================================
--- 2.	Checking table 'silver.crm_prd_info'
--- =============================================================
-
-------------------------------------------------------------
---		* DATA QUALITY *
--- 2.1	Check for NULL or Duplicate in ** Primary Key **
---		Expectation: No NULL or Duplicates
-------------------------------------------------------------
-SELECT
-	prd_id,
-	COUNT(*)
-FROM silver.crm_prd_info
-GROUP BY prd_id
-HAVING COUNT(*) > 1 OR prd_id IS NULL;
-
-------------------------------------------------------------
--- 2.2	Check for unwanted spaces
---		Expectation: No results
-------------------------------------------------------------
-SELECT 
-	prd_nm
-FROM silver.crm_prd_info
-WHERE prd_nm != TRIM(prd_nm);
-
-------------------------------------------------------------
--- 2.3	Check for NULL or Negative values in prd_cost
---		Expectation: No results
-------------------------------------------------------------
-SELECT 
-    prd_cost 
-FROM silver.crm_prd_info
-WHERE prd_cost < 0 OR prd_cost IS NULL
-;
-
--------------------------------------------------------------------
---		* Data Standardisation & Consistency *
--- 2.4	Check the consistency of values in low cardinality columns
---------------------------------------------------------------------
-SELECT DISTINCT 
-    prd_line 
-FROM silver.crm_prd_info
-;
--------------------------------------------------------------------
--- 2.5	Check for Invalid Date Orders; where Start Date > End Date
---		Expectation: No results
--------------------------------------------------------------------
-SELECT 
-    * 
-FROM silver.crm_prd_info
-WHERE prd_end_dt < prd_start_dt;
-;
-
--- =============================================================
--- 3.	Checking table 'silver.crm_sales_details'
--- =============================================================
-
-------------------------------------------------------------
--- 3.1	Check for Invalid Dates
---		Expectation: No results
-------------------------------------------------------------
-SELECT 
-    NULLIF(sls_due_dt, 0) AS sls_due_dt
-FROM bronze.crm_sales_details
-WHERE sls_due_dt <= 0 
-    OR LEN(sls_due_dt) != 8   
-    OR sls_due_dt > 20500101  
-    OR sls_due_dt < 19000101
-;
-
-------------------------------------------------------------
--- 3.2	Check for Invalid Date Orders; where:
---          - Order Date > Shipping Date
---          - Order Date > Due Date
---
---		Expectation: No results
-------------------------------------------------------------
-SELECT
-    *
-FROM bronze.crm_sales_details
-WHERE sls_order_dt > sls_ship_dt OR sls_order_dt > sls_due_dt
-;
-
-------------------------------------------------------------
---      * DATA CONSISTENCY *
--- 3.3	Check for Invalid Dates
-
---      BUSINESS RULE: Total Sales = Quantity * Price
---      Must not have NULL and Negative values in 
---      sls_sales, sls_quantity, sls_price.
---
---		Expectation: No results
-------------------------------------------------------------
-SELECT DISTINCT
-    sls_sales,
-    sls_quantity,
-    sls_price
-FROM bronze.crm_sales_details
-WHERE sls_sales != sls_quantity * sls_price
-    OR sls_sales IS NULL 
-    OR sls_quantity IS NULL 
-    OR sls_price IS NULL
-    OR sls_sales <= 0 
-    OR sls_quantity <= 0 
-    OR sls_price <= 0
-ORDER BY sls_sales, sls_quantity, sls_price
-;
-
--- =============================================================
--- 4.	Checking table 'silver.erp_cust_az12'
--- =============================================================
-
-------------------------------------------------------------
--- 4.1	Check for Invalid Birthdates; Out of Range
---		Expectation: Ranged within 1924-01-01 and Today
-------------------------------------------------------------
-SELECT DISTINCT
-	bdate
-FROM silver.erp_cust_az12
-WHERE bdate < '1924-01-01' 
-	OR bdate > GETDATE()
-;
-
-----------------------------------------------------------
---		* Data Standardisation & Consistency *
---
--- 4.2  Check unique Gender
---      Expectation: Male, Female, Unknown
-----------------------------------------------------------
-SELECT DISTINCT
-	gen
-FROM silver.erp_cust_az12
-;
-
--- =============================================================
--- 5.	Checking table 'silver.erp_loc_a101'
--- =============================================================
-
-------------------------------------------------------
--- 5.1	* Data Standardisation & Consistency *
---
---      Check all values in cntry
---      Expectation: No abbreviations and shortforms
-------------------------------------------------------
-SELECT DISTINCT 
-	cntry 
-FROM silver.erp_loc_a101
-ORDER BY cntry
-;
-
--- =============================================================
--- 6.	Checking table 'silver.erp_px_cat_g1v2'
--- =============================================================
-
-------------------------------------------------------
--- 6.1  Check for unwanted spaces
---      Expectation: No results
-------------------------------------------------------
-SELECT 
-	* 
-FROM silver.erp_px_cat_g1v2
-WHERE cat != TRIM(cat)
-    OR subcat != TRIM(subcat)
-    OR maintenance != TRIM(maintenance)
-;
-
-------------------------------------------------------
--- 6.2	* Data Standardisation & Consistency *
---
---      Check all values in maintenance
---      Expectation: Yes or No
-------------------------------------------------------
-SELECT DISTINCT
-    maintenance
-FROM silver.erp_px_cat_g1v2
-;
-
-```
----
-
-### Script 3.5 Stored Procedure: Load Silver Layer (Bronze -> Silver)
+### Script 3.4 Stored Procedure: Load Silver Layer (Bronze -> Silver)
 Script(s): [proc_load_silver.sql](scripts/silver/proc_load_silver.sql)
 
 Script Purpose:
@@ -1980,31 +1779,1014 @@ END
 ```
 
 ---
+### Script 3.5 Quality Checks - Silver Layer
+Script(s): [quality_checks_silver.sql](tests/quality_checks_silver.sql)
 
-# 🥇 4. Gold Layer
+Script Purpose:
+    This script performs various quality checks for data consistency, 
+    accuracy, and standardisation across the 'silver' layer. 
+
+It includes checks for:
+
+- Null or duplicate primary keys.
+- Unwanted spaces in string fields.
+- Data standardisation and consistency.
+- Invalid date ranges and orders.
+- Data consistency between related fields.
+
+Usage Notes:
+- Run these checks after loading data into Silver layer.
+- Investigate and resolve any discrepancies found during checks.
+
+```sql
+-- =============================================================
+-- 1.	Checking table 'silver.crm_cust_info'
+-- =============================================================
+
+------------------------------------------------------------
+--		* DATA QUALITY *
+-- 1.1	Check for NULL or Duplicate in ** Primary Key **
+--		Expectation: No NULL or Duplicates
+------------------------------------------------------------
+SELECT
+	cst_id,
+	COUNT(*)
+FROM silver.crm_cust_info
+GROUP BY cst_id
+HAVING COUNT(*) > 1 OR cst_id IS NULL;
+
+------------------------------------------------------------
+-- 1.2	Check for unwanted spaces
+--		Expectation: No results
+------------------------------------------------------------
+SELECT 
+	cst_key
+FROM silver.crm_cust_info
+WHERE cst_key != TRIM(cst_key);
+
+-------------------------------------------------------------------
+--		* Data Standardisation & Consistency *
+-- 1.3	Check the consistency of values in low cardinality columns
+--------------------------------------------------------------------
+SELECT DISTINCT
+	cst_marital_status
+FROM silver.crm_cust_info;
+
+
+-- =============================================================
+-- 2.	Checking table 'silver.crm_prd_info'
+-- =============================================================
+
+------------------------------------------------------------
+--		* DATA QUALITY *
+-- 2.1	Check for NULL or Duplicate in ** Primary Key **
+--		Expectation: No NULL or Duplicates
+------------------------------------------------------------
+SELECT
+	prd_id,
+	COUNT(*)
+FROM silver.crm_prd_info
+GROUP BY prd_id
+HAVING COUNT(*) > 1 OR prd_id IS NULL;
+
+------------------------------------------------------------
+-- 2.2	Check for unwanted spaces
+--		Expectation: No results
+------------------------------------------------------------
+SELECT 
+	prd_nm
+FROM silver.crm_prd_info
+WHERE prd_nm != TRIM(prd_nm);
+
+------------------------------------------------------------
+-- 2.3	Check for NULL or Negative values in prd_cost
+--		Expectation: No results
+------------------------------------------------------------
+SELECT 
+    prd_cost 
+FROM silver.crm_prd_info
+WHERE prd_cost < 0 OR prd_cost IS NULL
+;
+
+-------------------------------------------------------------------
+--		* Data Standardisation & Consistency *
+-- 2.4	Check the consistency of values in low cardinality columns
+--------------------------------------------------------------------
+SELECT DISTINCT 
+    prd_line 
+FROM silver.crm_prd_info
+;
+-------------------------------------------------------------------
+-- 2.5	Check for Invalid Date Orders; where Start Date > End Date
+--		Expectation: No results
+-------------------------------------------------------------------
+SELECT 
+    * 
+FROM silver.crm_prd_info
+WHERE prd_end_dt < prd_start_dt;
+;
+
+-- =============================================================
+-- 3.	Checking table 'silver.crm_sales_details'
+-- =============================================================
+
+------------------------------------------------------------
+-- 3.1	Check for Invalid Dates
+--		Expectation: No results
+------------------------------------------------------------
+SELECT 
+    NULLIF(sls_due_dt, 0) AS sls_due_dt
+FROM bronze.crm_sales_details
+WHERE sls_due_dt <= 0 
+    OR LEN(sls_due_dt) != 8   
+    OR sls_due_dt > 20500101  
+    OR sls_due_dt < 19000101
+;
+
+------------------------------------------------------------
+-- 3.2	Check for Invalid Date Orders; where:
+--          - Order Date > Shipping Date
+--          - Order Date > Due Date
+--
+--		Expectation: No results
+------------------------------------------------------------
+SELECT
+    *
+FROM bronze.crm_sales_details
+WHERE sls_order_dt > sls_ship_dt OR sls_order_dt > sls_due_dt
+;
+
+------------------------------------------------------------
+--      * DATA CONSISTENCY *
+-- 3.3	Check for Invalid Dates
+
+--      BUSINESS RULE: Total Sales = Quantity * Price
+--      Must not have NULL and Negative values in 
+--      sls_sales, sls_quantity, sls_price.
+--
+--		Expectation: No results
+------------------------------------------------------------
+SELECT DISTINCT
+    sls_sales,
+    sls_quantity,
+    sls_price
+FROM bronze.crm_sales_details
+WHERE sls_sales != sls_quantity * sls_price
+    OR sls_sales IS NULL 
+    OR sls_quantity IS NULL 
+    OR sls_price IS NULL
+    OR sls_sales <= 0 
+    OR sls_quantity <= 0 
+    OR sls_price <= 0
+ORDER BY sls_sales, sls_quantity, sls_price
+;
+
+-- =============================================================
+-- 4.	Checking table 'silver.erp_cust_az12'
+-- =============================================================
+
+------------------------------------------------------------
+-- 4.1	Check for Invalid Birthdates; Out of Range
+--		Expectation: Ranged within 1924-01-01 and Today
+------------------------------------------------------------
+SELECT DISTINCT
+	bdate
+FROM silver.erp_cust_az12
+WHERE bdate < '1924-01-01' 
+	OR bdate > GETDATE()
+;
+
+----------------------------------------------------------
+--		* Data Standardisation & Consistency *
+--
+-- 4.2  Check unique Gender
+--      Expectation: Male, Female, Unknown
+----------------------------------------------------------
+SELECT DISTINCT
+	gen
+FROM silver.erp_cust_az12
+;
+
+-- =============================================================
+-- 5.	Checking table 'silver.erp_loc_a101'
+-- =============================================================
+
+------------------------------------------------------
+-- 5.1	* Data Standardisation & Consistency *
+--
+--      Check all values in cntry
+--      Expectation: No abbreviations and shortforms
+------------------------------------------------------
+SELECT DISTINCT 
+	cntry 
+FROM silver.erp_loc_a101
+ORDER BY cntry
+;
+
+-- =============================================================
+-- 6.	Checking table 'silver.erp_px_cat_g1v2'
+-- =============================================================
+
+------------------------------------------------------
+-- 6.1  Check for unwanted spaces
+--      Expectation: No results
+------------------------------------------------------
+SELECT 
+	* 
+FROM silver.erp_px_cat_g1v2
+WHERE cat != TRIM(cat)
+    OR subcat != TRIM(subcat)
+    OR maintenance != TRIM(maintenance)
+;
+
+------------------------------------------------------
+-- 6.2	* Data Standardisation & Consistency *
+--
+--      Check all values in maintenance
+--      Expectation: Yes or No
+------------------------------------------------------
+SELECT DISTINCT
+    maintenance
+FROM silver.erp_px_cat_g1v2
+;
+
+```
+---
+
+## 🥇 4. Gold Layer
+
+Next, the final gold layer is constructed:
 
 <img width="1169" height="827" alt="data_flow_diagram_gold" src="https://github.com/user-attachments/assets/e10be8e2-c831-462c-b319-5a87aaac33b5" />
 
 
-#### Script 4.1 Create and Initialise Database and Schemas 
+The gold CRM and ERP tables can be joined together as follows:
+
+<img width="1081" height="711" alt="data_integration" src="https://github.com/user-attachments/assets/d6ef9efa-6e49-43ea-a336-e405309aa4a4" />
+
+<img width="941" height="664" alt="sales_data_mart_star_schema" src="https://github.com/user-attachments/assets/8473652b-f9fa-4b20-aba4-05eea6a44e97" />
+
+
+### Script 4.1 Create Gold Views
+Script(s): [ddl_gold.sql](scripts/gold/ddl_gold.sql)
+
+Script Purpose:
+This script creates views for the Gold layer in the data warehouse.
+The gold layer represents the final dimension and fact tables (Star Schema).
+
+Each view performs transformations and combines data from the Silver layer to produce a clean, enriched, and business-ready dataset.
+
+The result is a **star schema** that powers Power BI dashboards, self-service analytics, and strategic KPIs such as sales trends, customer behaviour, product performance.
+
+Usage:
+These views can be queried directly for analytics and reporting.
+
+```sql
+/*
+=====================================================================================
+DDL Script: Create Gold Views
+=====================================================================================
+Script Purpose:
+	This script creates views for the Gold layer in the data warehouse.
+	The gold layer represents the final dimension and fact tables (Star Schema).
+
+	Each view performs transformations and combines data from the Silver layer
+	to produce a clean, enriched, and business-ready dataaset.
+
+Usage:
+	- These views can be queried directly for analytics and reporting.
+=====================================================================================
+*/
+```
+
+```sql
+----------------------------------------------------------------
+-- CREATE DIMENSIONS TABLE: gold.dim_customers
+----------------------------------------------------------------
+IF OBJECT_ID('gold.dim_customers', 'V') IS NOT NULL
+	DROP VIEW gold.dim_customers;
+GO
+
+CREATE VIEW gold.dim_customers AS 
+SELECT
+	ROW_NUMBER() OVER (ORDER BY cst_id) AS customer_key,
+	ci.cst_id							AS customer_id,
+	ci.cst_key							AS customer_number,
+	ci.cst_firstname					AS first_name,
+	ci.cst_lastname						AS last_name,
+	lo.cntry							AS country,
+	ci.cst_marital_status				AS marital_status,
+	CASE WHEN ci.cst_gndr != 'Unknown' THEN ci.cst_gndr		
+		ELSE COALESCE(ca.gen, 'Unknown')
+	END									AS gender,
+	ca.bdate							AS birthdate,
+	ci.cst_create_date					AS create_date
+FROM silver.crm_cust_info AS ci
+LEFT JOIN silver.erp_cust_az12 AS ca
+ON		  ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101 AS lo
+ON		  ci.cst_key = lo.cid
+;
+```
+**After creating gold.dim_customers :**
+
+<img width="1913" height="960" alt="image" src="https://github.com/user-attachments/assets/9764f334-c16d-4f15-ba9a-71c356a1abc8" />
+
+
+
+```sql
+----------------------------------------------------------------
+-- CREATE DIMENSIONS TABLE: gold.dim_products
+----------------------------------------------------------------
+IF OBJECT_ID('gold.dim_products', 'V') IS NOT NULL
+	DROP VIEW gold.dim_products;
+GO
+
+CREATE VIEW gold.dim_products AS
+SELECT 
+	ROW_NUMBER() OVER (ORDER BY prd_start_dt, pn.prd_key)	AS product_key,
+	pn.prd_id												AS product_id,
+	pn.prd_key												AS product_number,
+	pn.prd_nm												AS product_name,
+	pn.cat_id												AS category_id,
+	pc.cat													AS category,
+	pc.subcat												AS subcategory,
+	pc.maintenance,
+	pn.prd_cost												AS product_cost,
+	pn.prd_line												AS product_line,
+	pn.prd_start_dt											AS product_start_date
+FROM silver.crm_prd_info AS pn
+LEFT JOIN silver.erp_px_cat_g1v2 AS pc
+ON		  pn.cat_id = pc.id
+WHERE prd_end_dt IS NULL
+;
+```
+
+**After creating gold.dim_products :**
+
+<img width="1911" height="982" alt="image" src="https://github.com/user-attachments/assets/6f9add4e-9761-40ee-a233-a01f519bab8c" />
+
+```sql
+----------------------------------------------------------------
+-- CREATE FACT TABLE: gold.fact_sales
+----------------------------------------------------------------
+IF OBJECT_ID('gold.fact_sales', 'V') IS NOT NULL
+	DROP VIEW gold.fact_sales;
+GO
+
+CREATE VIEW gold.fact_sales AS
+SELECT
+	sd.sls_ord_num				AS order_number,	-- DIMENSION KEY	
+	pr.product_key,									-- DIMENSION KEY
+	cu.customer_key,								-- DIMENSION KEY
+	sd.sls_order_dt				AS order_date,		-- DATES
+	sd.sls_ship_dt				AS shipping_date,	-- DATES
+	sd.sls_due_dt				AS due_date,		-- DATES
+	sd.sls_sales				AS sales_amount,	-- MEASURES
+	sd.sls_quantity				AS quantity,		-- MEASURES
+	sd.sls_price				AS price			-- MEASURES
+FROM silver.crm_sales_details AS sd
+LEFT JOIN gold.dim_products AS pr
+ON		  sd.sls_prd_key = pr.product_number
+LEFT JOIN gold.dim_customers AS cu
+ON		  sd.sls_cust_id = cu.customer_id
+;
+```
+
+
+**After creating gold.fact_sales :**
+
+<img width="1913" height="985" alt="image" src="https://github.com/user-attachments/assets/a48db228-012f-42be-8540-028fba5d2521" />
+
+---
+
+The creation of each gold tables are explained in further detail below:
+
+---
+
+### 4.1.1 Create View: gold.dim_customers	
+
+Script Purpose:
+
+1.	Join cst_key from silver.crm_cust_info to cid from silver.erp_cust_az12 .
+2.	Join cst_key from silver.crm_cust_info to cid from silver.erp_loc_a101 .
+3.	Rename columns to friendly & meaningful names using snake_case.
+4.	Sort columns into logical, readable groups.
+5.	Generate surrogate key using ROW_NUMBER().
+6.	Create View: gold.dim_customers
+
+```sql
+-------------------------------------------------------------------
+--		1.	Join cst_key from silver.crm_cust_info
+--			to	 cid	 from silver.erp_cust_az12
+-------------------------------------------------------------------
+-- Listing out table silver.crm_cust_info:
+SELECT
+	cst_id,
+	cst_key,
+	cst_firstname,
+	cst_lastname,
+	cst_marital_status,
+	cst_gndr,
+	cst_create_date
+FROM silver.crm_cust_info
+;
+
+-- Listing out table silver.erp_cust_az12:
+SELECT
+	cid,
+	bdate,
+	gen
+FROM silver.erp_cust_az12
+;
+
+----------------------------------------------------------------
+-- LEFT JOIN silver.crm_cust_info & silver.erp_cust_az12
+----------------------------------------------------------------
+SELECT
+	ci.cst_id,
+	ci.cst_key,
+	ci.cst_firstname,
+	ci.cst_lastname,
+	ci.cst_marital_status,
+	ci.cst_gndr,
+	ci.cst_create_date,
+	ca.bdate,
+	ca.gen
+FROM silver.crm_cust_info AS ci
+LEFT JOIN silver.erp_cust_az12 AS ca
+ON		  ci.cst_key = ca.cid
+;
+
+-------------------------------------------------------------------
+--		2.	Join cst_key from silver.crm_cust_info
+--			to	 cid	 from silver.erp_loc_a101
+-------------------------------------------------------------------
+-- Listing out table silver.erp_loc_a101:
+SELECT
+	cid,
+	cntry
+FROM silver.erp_loc_a101
+;
+
+----------------------------------------------------------------
+-- LEFT JOIN with silver.erp_loc_a101
+----------------------------------------------------------------
+SELECT
+	ci.cst_id,
+	ci.cst_key,
+	ci.cst_firstname,
+	ci.cst_lastname,
+	ci.cst_marital_status,
+	ci.cst_gndr,
+	ci.cst_create_date,
+	ca.bdate,
+	ca.gen,
+	lo.cntry
+FROM silver.crm_cust_info AS ci
+LEFT JOIN silver.erp_cust_az12 AS ca
+ON		  ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101 AS lo
+ON		  ci.cst_key = lo.cid
+;
+
+
+----------------------------------------------------------------
+-- Checking joined tables for Duplicates:
+----------------------------------------------------------------
+SELECT cst_id, COUNT(*) FROM (			-- GROUP BY function on subquery
+	SELECT
+		ci.cst_id,
+		ci.cst_key,
+		ci.cst_firstname,
+		ci.cst_lastname,
+		ci.cst_marital_status,
+		ci.cst_gndr,
+		ci.cst_create_date,
+		ca.bdate,
+		ca.gen,
+		lo.cntry
+	FROM silver.crm_cust_info AS ci
+	LEFT JOIN silver.erp_cust_az12 AS ca
+	ON		  ci.cst_key = ca.cid
+	LEFT JOIN silver.erp_loc_a101 AS lo
+	ON		  ci.cst_key = lo.cid
+)t GROUP BY cst_id 
+HAVING COUNT(*) > 1
+;
+
+----------------------------------------------------------------
+-- Issue:		Two genders found in table
+-- Solution:	Data Integration
+----------------------------------------------------------------
+SELECT DISTINCT
+	ci.cst_gndr,
+	ca.gen
+FROM silver.crm_cust_info AS ci
+LEFT JOIN silver.erp_cust_az12 AS ca
+ON		  ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101 AS lo
+ON		  ci.cst_key = lo.cid
+ORDER BY 1, 2
+;
+
+---------------------------------------------------------------------------------
+-- Issue:		- Gender info mismatch between CRM & ERP columns
+--				- NULL in ERP
+--				- Unknown in CRM
+-- Question:	Which source table is the master data source for these values?
+-- 
+-- Solution:	CRM is the Master Source of Customer Data.
+---------------------------------------------------------------------------------
+
+----------------------------------------------------------------
+-- RULE:
+--		- When gender data found in CRM, then use CRM data.
+--		- COALESCE() : If NULL then convert to Unknown.
+--		- ELSE		 : Use gender data available on ERP data.
+----------------------------------------------------------------
+SELECT DISTINCT
+	ci.cst_gndr,
+	ca.gen,
+	CASE WHEN ci.cst_gndr != 'Unknown' THEN ci.cst_gndr		-- Use Master CRM gender data.
+		ELSE COALESCE(ca.gen, 'Unknown')
+	END AS new_gen
+FROM silver.crm_cust_info AS ci
+LEFT JOIN silver.erp_cust_az12 AS ca
+ON		  ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101 AS lo
+ON		  ci.cst_key = lo.cid
+ORDER BY 1, 2
+;
+
+----------------------------------------------------------------
+-- Integrate CASE query
+----------------------------------------------------------------
+SELECT
+	ci.cst_id,
+	ci.cst_key,
+	ci.cst_firstname,
+	ci.cst_lastname,
+	ci.cst_marital_status,
+	CASE WHEN ci.cst_gndr != 'Unknown' THEN ci.cst_gndr		
+		ELSE COALESCE(ca.gen, 'Unknown')
+	END AS new_gen,
+	ci.cst_create_date,
+	ca.bdate,
+	lo.cntry
+FROM silver.crm_cust_info AS ci
+LEFT JOIN silver.erp_cust_az12 AS ca
+ON		  ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101 AS lo
+ON		  ci.cst_key = lo.cid
+;
+
+
+----------------------------------------------------------------
+-- GOAL: Rename columns to friendly & meaningful names
+--		 using snake_case .
+----------------------------------------------------------------
+SELECT
+	ci.cst_id					AS customer_id,
+	ci.cst_key					AS customer_number,
+	ci.cst_firstname			AS first_name,
+	ci.cst_lastname				AS last_name,
+	ci.cst_marital_status		AS marital_status,
+	CASE WHEN ci.cst_gndr != 'Unknown' THEN ci.cst_gndr		
+		ELSE COALESCE(ca.gen, 'Unknown')
+	END							AS gender,
+	ci.cst_create_date			AS create_date,
+	ca.bdate					AS birthdate,
+	lo.cntry					AS country
+FROM silver.crm_cust_info		AS ci
+LEFT JOIN silver.erp_cust_az12	AS ca
+ON		  ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101	AS lo
+ON		  ci.cst_key = lo.cid
+;
+
+----------------------------------------------------------------
+-- GOAL: Sort columns into logical, readable groups
+----------------------------------------------------------------
+SELECT
+	ci.cst_id					AS customer_id,
+	ci.cst_key					AS customer_number,
+	ci.cst_firstname			AS first_name,
+	ci.cst_lastname				AS last_name,
+	lo.cntry					AS country,
+	ci.cst_marital_status		AS marital_status,
+	CASE WHEN ci.cst_gndr != 'Unknown' THEN ci.cst_gndr		
+		ELSE COALESCE(ca.gen, 'Unknown')
+	END							AS gender,
+	ca.bdate					AS birthdate,
+	ci.cst_create_date			AS create_date
+FROM silver.crm_cust_info		AS ci
+LEFT JOIN silver.erp_cust_az12	AS ca
+ON		  ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101	AS lo
+ON		  ci.cst_key = lo.cid
+;
+
+
+--=================================================================
+-- QUESTION: IS THIS NEW TABLE A DIMENSION VS FACT TABLE ?
+--=================================================================
+
+----------------------------------------------------------------
+-- This new table is a DIMENSION TABLE.
+-- GOAL: Generate surrogate key using ROW_NUMBER()
+-- GOAL: CREATE VIEW
+----------------------------------------------------------------
+CREATE VIEW gold.dim_customers AS 
+SELECT
+	ROW_NUMBER() OVER (ORDER BY cst_id) AS customer_key,
+	ci.cst_id							AS customer_id,
+	ci.cst_key							AS customer_number,
+	ci.cst_firstname					AS first_name,
+	ci.cst_lastname						AS last_name,
+	lo.cntry							AS country,
+	ci.cst_marital_status				AS marital_status,
+	CASE WHEN ci.cst_gndr != 'Unknown' THEN ci.cst_gndr		
+		ELSE COALESCE(ca.gen, 'Unknown')
+	END									AS gender,
+	ca.bdate							AS birthdate,
+	ci.cst_create_date					AS create_date
+FROM silver.crm_cust_info AS ci
+LEFT JOIN silver.erp_cust_az12 AS ca
+ON		  ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101 AS lo
+ON		  ci.cst_key = lo.cid
+;
+
+--=================================================================
+-- QUALITY CHECK GOLD TABLE
+--=================================================================
+-- Check Gold Table columns:
+SELECT * FROM gold.dim_customers
+
+-- Check uniqueness of gender:
+SELECT DISTINCT gender FROM gold.dim_customers;
+
+```
+--- 
+
+### 4.1.2 Create View: gold.dim_products	
+
+Script Purpose:
+
+1.	Join cat_id from silver.crm_prd_info to id from silver.erp_px_cat_g1v2.
+2.	Check for redundant columns.
+3.	Rename columns to friendly & meaningful names using snake_case.
+4.	Sort columns into logical, readable groups.
+5.	Generate surrogate key using ROW_NUMBER().
+6.	Create View: gold.dim_products .
+
+```sql
+-------------------------------------------------------------------
+-- GOAL:	Use CURRENT up-to-date data of the products,
+--			filter out the past historical data of each product.
+-------------------------------------------------------------------
+SELECT 
+	pn.prd_id,
+	pn.cat_id,
+	pn.prd_key,
+	pn.prd_nm,
+	pn.prd_cost,
+	pn.prd_line,
+	pn.prd_start_dt,
+	pn.prd_end_dt
+FROM silver.crm_prd_info AS pn
+WHERE prd_end_dt IS NULL		-- Filter out all historical data
+;
+
+-------------------------------------------------------------------
+-- GOAL:	Join cat_id	 from silver.crm_prd_info
+--			to	 id		 from silver.erp_px_cat_g1v2
+-------------------------------------------------------------------
+-- Show silver.erp_px_cat_g1v2 table:
+SELECT * FROM silver.erp_px_cat_g1v2;
+
+
+SELECT 
+	pn.prd_id,
+	pn.cat_id,
+	pn.prd_key,
+	pn.prd_nm,
+	pn.prd_cost,
+	pn.prd_line,
+	pn.prd_start_dt,
+	pc.cat,
+	pc.subcat,
+	pc.maintenance
+FROM silver.crm_prd_info AS pn
+LEFT JOIN silver.erp_px_cat_g1v2 AS pc
+ON		  pn.cat_id = pc.id
+WHERE prd_end_dt IS NULL
+;
+
+-----------------------------------------------------------------
+-- QUALITY CHECK OF RESULT TABLE
+-----------------------------------------------------------------
+-- Check for Duplicate Records:
+SELECT prd_key, COUNT(*) FROM (
+	SELECT 
+		pn.prd_id,
+		pn.cat_id,
+		pn.prd_key,
+		pn.prd_nm,
+		pn.prd_cost,
+		pn.prd_line,
+		pn.prd_start_dt,
+		pc.cat,
+		pc.subcat,
+		pc.maintenance
+	FROM silver.crm_prd_info AS pn
+	LEFT JOIN silver.erp_px_cat_g1v2 AS pc
+	ON		  pn.cat_id = pc.id
+	WHERE prd_end_dt IS NULL
+)t GROUP BY prd_key
+HAVING COUNT(*) > 1
+;
+
+
+-------------------------------------------------------------------
+-- GOALs:	- Check for redundant columns.
+--			- Sort columns into logical, readable groups.
+-------------------------------------------------------------------
+SELECT 
+	pn.prd_id,
+	pn.prd_key,
+	pn.prd_nm,
+	pn.cat_id,
+	pc.cat,
+	pc.subcat,
+	pc.maintenance,
+	pn.prd_cost,
+	pn.prd_line,
+	pn.prd_start_dt
+FROM silver.crm_prd_info AS pn
+LEFT JOIN silver.erp_px_cat_g1v2 AS pc
+ON		  pn.cat_id = pc.id
+WHERE prd_end_dt IS NULL
+;
+
+-------------------------------------------------------------------
+-- GOAL:	Rename columns to friendly & meaningful names
+--			using snake_case .
+-- GOAL:	Add surrogate key using ROW_NUMBER() .
+-------------------------------------------------------------------
+SELECT 
+	ROW_NUMBER() OVER (ORDER BY prd_start_dt, pn.prd_key)	AS product_key,
+	pn.prd_id												AS product_id,
+	pn.prd_key												AS product_number,
+	pn.prd_nm												AS product_name,
+	pn.cat_id												AS category_id,
+	pc.cat													AS category,
+	pc.subcat												AS subcategory,
+	pc.maintenance,
+	pn.prd_cost												AS product_cost,
+	pn.prd_line												AS product_line,
+	pn.prd_start_dt											AS product_start_date
+FROM silver.crm_prd_info AS pn
+LEFT JOIN silver.erp_px_cat_g1v2 AS pc
+ON		  pn.cat_id = pc.id
+WHERE prd_end_dt IS NULL
+;
+
+----------------------------------------------------------------
+-- GOAL: CREATE VIEW
+----------------------------------------------------------------
+CREATE VIEW gold.dim_products AS
+SELECT 
+	ROW_NUMBER() OVER (ORDER BY prd_start_dt, pn.prd_key)	AS product_key,
+	pn.prd_id												AS product_id,
+	pn.prd_key												AS product_number,
+	pn.prd_nm												AS product_name,
+	pn.cat_id												AS category_id,
+	pc.cat													AS category,
+	pc.subcat												AS subcategory,
+	pc.maintenance,
+	pn.prd_cost												AS product_cost,
+	pn.prd_line												AS product_line,
+	pn.prd_start_dt											AS product_start_date
+FROM silver.crm_prd_info AS pn
+LEFT JOIN silver.erp_px_cat_g1v2 AS pc
+ON		  pn.cat_id = pc.id
+WHERE prd_end_dt IS NULL
+;
+```
+---
+### 4.1.3 Create View: gold.fact_sales	
+
+Script Purpose:
+
+1.	JOIN two gold tables' **surrogate keys**.
+2.	Join sls_prd_key from silver.crm_sales_details to product_number from gold.dim_products.
+3.	Join sls_cust_id from silver.crm_sales_details to customer_id from gold.dim_customers.
+4.	Rename columns to friendly & meaningful names using snake_case.
+5.	Sort columns into logical, readable groups.
+6.	Create View: gold.fact_sales .
+
+```sql
+----------------------------------------------------------------------------------
+-- MAIN GOAL: JOIN TWO GOLD TABLES' SURROGATE KEYS
+----------------------------------------------------------------------------------
+-------------------------------------------------------------------
+-- GOALs:	- Join	sls_prd_key		from silver.crm_sales_details
+--			  to	product_number	from gold.dim_products
+--
+--			- Join	sls_cust_id		from silver.crm_sales_details
+--			  to	customer_id		from gold.dim_customers
+-------------------------------------------------------------------
+/*
+SELECT * FROM silver.crm_sales_details
+SELECT * FROM gold.dim_products
+SELECT * FROM gold.dim_customers
+*/
+
+SELECT
+	sd.sls_ord_num,
+	pr.product_key,
+	cu.customer_key,
+	sd.sls_order_dt,
+	sd.sls_ship_dt,
+	sd.sls_due_dt,
+	sd.sls_sales,
+	sd.sls_quantity,
+	sd.sls_price
+FROM silver.crm_sales_details AS sd
+LEFT JOIN gold.dim_products AS pr
+ON		  sd.sls_prd_key = pr.product_number
+LEFT JOIN gold.dim_customers AS cu
+ON		  sd.sls_cust_id = cu.customer_id
+;
+
+-------------------------------------------------------------------
+-- GOAL:	Rename columns to friendly & meaningful names
+--			using snake_case .
+-------------------------------------------------------------------
+SELECT
+	sd.sls_ord_num				AS order_number,
+	pr.product_key,
+	cu.customer_key,
+	sd.sls_order_dt				AS order_date,
+	sd.sls_ship_dt				AS shipping_date,
+	sd.sls_due_dt				AS due_date,
+	sd.sls_sales				AS sales_amount,
+	sd.sls_quantity				AS quantity,
+	sd.sls_price				AS price
+FROM silver.crm_sales_details AS sd
+LEFT JOIN gold.dim_products AS pr
+ON		  sd.sls_prd_key = pr.product_number
+LEFT JOIN gold.dim_customers AS cu
+ON		  sd.sls_cust_id = cu.customer_id
+;
+
+-------------------------------------------------------------------
+-- GOALs:	- Sort columns into logical, readable groups.
+-------------------------------------------------------------------
+SELECT
+	sd.sls_ord_num				AS order_number,	-- DIMENSION KEY	
+	pr.product_key,									-- DIMENSION KEY
+	cu.customer_key,								-- DIMENSION KEY
+	sd.sls_order_dt				AS order_date,		-- DATES
+	sd.sls_ship_dt				AS shipping_date,	-- DATES
+	sd.sls_due_dt				AS due_date,		-- DATES
+	sd.sls_sales				AS sales_amount,	-- MEASURES
+	sd.sls_quantity				AS quantity,		-- MEASURES
+	sd.sls_price				AS price			-- MEASURES
+FROM silver.crm_sales_details AS sd
+LEFT JOIN gold.dim_products AS pr
+ON		  sd.sls_prd_key = pr.product_number
+LEFT JOIN gold.dim_customers AS cu
+ON		  sd.sls_cust_id = cu.customer_id
+;
+
+----------------------------------------------------------------
+-- FINAL: CREATE VIEW
+----------------------------------------------------------------
+CREATE VIEW gold.fact_sales AS
+SELECT
+	sd.sls_ord_num				AS order_number,	-- DIMENSION KEY	
+	pr.product_key,									-- DIMENSION KEY
+	cu.customer_key,								-- DIMENSION KEY
+	sd.sls_order_dt				AS order_date,		-- DATES
+	sd.sls_ship_dt				AS shipping_date,	-- DATES
+	sd.sls_due_dt				AS due_date,		-- DATES
+	sd.sls_sales				AS sales_amount,	-- MEASURES
+	sd.sls_quantity				AS quantity,		-- MEASURES
+	sd.sls_price				AS price			-- MEASURES
+FROM silver.crm_sales_details AS sd
+LEFT JOIN gold.dim_products AS pr
+ON		  sd.sls_prd_key = pr.product_number
+LEFT JOIN gold.dim_customers AS cu
+ON		  sd.sls_cust_id = cu.customer_id
+;
+
+--=================================================================
+-- QUALITY CHECK OF TABLE
+--=================================================================
+SELECT * FROM gold.fact_sales
+SELECT * FROM gold.dim_customers
+
+-----------------------------------------------------------------
+-- Check Foreign Key Integrity (Dimensions): gold.dim_customers
+-----------------------------------------------------------------
+SELECT * FROM gold.fact_sales
+SELECT * FROM gold.dim_customers
+SELECT * FROM gold.dim_products
+
+SELECT 
+	* 
+FROM gold.fact_sales AS f
+LEFT JOIN gold.dim_customers AS c
+ON		  f.customer_key = c.customer_key
+WHERE c.customer_key IS NULL
+;
+-- RESULTS: *CUSTOMER DIMENSION* table has successfully joined to the *FACT* table.
+
+----------------------------------------------------------------------------
+-- Check Foreign Key Integrity (Dimensions): Repeat for gold.dim_products
+----------------------------------------------------------------------------
+SELECT * FROM gold.fact_sales
+SELECT * FROM gold.dim_customers
+
+SELECT 
+	* 
+FROM gold.fact_sales AS f
+LEFT JOIN gold.dim_customers AS c
+ON		  f.customer_key = c.customer_key
+LEFT JOIN gold.dim_products AS p
+ON		  f.product_key = p.product_key
+WHERE p.product_key IS NULL OR c.customer_key IS NULL
+;
+-- RESULTS: *PRODUCT DIMENSION* table has successfully joined to the *FACT* table.
+
+```
+---
+
+### 6.2 Quality Checks - Gold Layer
+
+Script Purpose:
+This script performs quality checks to validate the integrity, consistency, 
+    and accuracy of the Gold layer. 
+    
+The checks below ensure:
+
+- Uniqueness of surrogate keys in the dimension tables.
+- Referential integrity between fact and dimension tables.
+- Validation of relationships in the data model for analytical purposes.
+
+Usage Notes:
+
+- Investigate and resolve any discrepancies found during the checks.
+
+```sql
+----------------------------------------------------------------
+-- CHECK TABLE: gold.dim_customers
+----------------------------------------------------------------
+-- Check for Uniqueness of Surrogate Key 'customer_key' in gold.dim_customers
+-- Expectation: No results 
+SELECT 
+    customer_key,
+    COUNT(*) AS duplicate_count
+FROM gold.dim_customers
+GROUP BY customer_key
+HAVING COUNT(*) > 1;
+
+----------------------------------------------------------------
+-- CHECK TABLE: gold.dim_products
+----------------------------------------------------------------
+-- Check for Uniqueness of Surrogate Key 'product_key' in gold.dim_products
+-- Expectation: No results 
+SELECT 
+    product_key,
+    COUNT(*) AS duplicate_count
+FROM gold.dim_products
+GROUP BY product_key
+HAVING COUNT(*) > 1;
+
+----------------------------------------------------------------
+-- CHECK TABLE: gold.fact_sales
+----------------------------------------------------------------
+-- Check data model connectivity between *FACT* and *DIMENSIONS*:
+SELECT 
+	* 
+FROM gold.fact_sales AS f
+LEFT JOIN gold.dim_customers AS c
+ON		  f.customer_key = c.customer_key
+LEFT JOIN gold.dim_products AS p
+ON		  f.product_key = p.product_key
+WHERE p.product_key IS NULL OR c.customer_key IS NULL
+;
+```
+---
 
 
 ---
 
 ![Data Architecture](documents/dwh_project_architecture.png)
 
-## ✅ End-to-End Flow  
-
-| Action                                   | Description                                                                 |
-|------------------------------------------|-----------------------------------------------------------------------------|
-| 1. Run `init.database.sql`                  | Create the DataWarehouse database and define schemas (`bronze`, `silver`, `gold`). |
-| 2. Run `ddl_bronze.sql`                     | Define Bronze staging tables that mirror raw CSV source structures.          |
-| 3. Execute `proc_load_bronze.sql`           | Bulk load CRM and ERP CSV data into Bronze tables.                          |
-| 4. Run `ddl_silver.sql`                     | Define Silver tables with proper data types and metadata fields.            |
-| 5. Execute `proc_load_silver.sql`           | Transform and cleanse Bronze data into standardized Silver tables.          |
-| 6. Run `ddl_gold.sql`                       | Build Gold star schema views (`dim_customers`, `dim_products`, `fact_sales`).|
-| 7. Run quality checks                       | Validate Silver & Gold layers with `quality_checks_silver.sql` and `quality_checks_gold.sql`. |
-| 8. Query Gold views                         | Use analytics-ready views for BI dashboards and business reporting.         |
 ---
 
 
