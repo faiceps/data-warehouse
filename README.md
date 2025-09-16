@@ -1,36 +1,40 @@
-# Data Warehouse and Analytics Project
+# Data Warehouse and Analytics Project - Part 1: Data Engineering
 
-- [🌟 About Me](#-about-me)
-- [📖 Project Overview](#-project-overview)
-- [🏗️ Data Architecture](#data-architecture)
-- [🚀 Project Outline](#-project-outline)
-  - [🔧 Building the Data Warehouse (Data Engineering)](#-building-the-data-warehouse-data-engineering)
-  - [📊 BI: Analytics & Reporting (Data Analysis)](#-bi-analytics--reporting-data-analysis)
-- [⚙️ Execution Flow](#execution-flow)
-- [📂 Repository Structure](#-repository-structure)
-- [📊 Full Project Showcase](#-data-warehouse-and-analytics-project--full-project-showcase)
-  - [📂 Datasets](#-1-datasets-datasets)
-  - [🥉 Bronze Layer](#-2-bronze-layer---raw-ingestion-scripts)
+## Table of Contents
+
+- [Data Warehouse and Analytics Project - Part 1: Data Engineering](#data-warehouse-and-analytics-project---part-1-data-engineering)
+  - [🌟 About Me](#-about-me)
+  - [📖 Project Overview](#-project-overview)
+  - [🏗 Data Architecture](#-data-architecture)
+  - [🚀 Project Outline](#-project-outline)
+    - [🔧 Part 1: Building the Data Warehouse (Data Engineering)](#-part-1-building-the-data-warehouse-data-engineering)
+    - [📊 Part 2: BI Analytics & Reporting (Data Analysis)](#-part-2-bi-analytics--reporting-data-analysis)
+  - [Execution Flow](#execution-flow)
+  - [📂 Repository Structure](#-repository-structure)
+
+- [📊 Data Warehouse and Analytics Project Part 1 : Full Project Showcase](#-data-warehouse-and-analytics-project-part-1--full-project-showcase)
+  - [1. Datasets (`/datasets`)](#-1-datasets-datasets)
+  - [2. Bronze Layer - Raw Ingestion (/scripts)](#-2-bronze-layer---raw-ingestion-scripts)
     - [Script 2.1 Create and Initialise Database and Schemas](#script-21-create-and-initialise-database-and-schemas)
-    - [Script 2.2 Define Bronze Tables](#script-22-define-bronze-tables)
-    - [Script 2.3 Stored Procedure: Load Bronze Layer](#script-23-stored-procedure-load-bronze-layer-source---bronze)
-  - [🥈 Silver Layer](#-3-silver-layer)
+    - [Script 2.2 Define Bronze tables](#script-22-define-bronze-tables)
+    - [Script 2.3 Stored Procedure: Load Bronze Layer (Source -> Bronze)](#script-23-stored-procedure-load-bronze-layer-source---bronze)
+  - [3. Silver Layer](#-3-silver-layer)
+    - [Data Standardisation & Transformation](#data-standardisation--transformation)
     - [Script 3.1 Create Silver Tables](#script-31-create-silver-tables)
-    - [Script 3.2 Data Transformation](#32--data-transformation)
-      - [bronze.crm_cust_info](#321-table-bronzecrm_cust_info)
-      - [bronze.crm_prd_info](#322-data-transformation---table-bronzecrm_prd_info)
-      - [bronze.crm_sales_details](#333--data-transformation---table-bronzecrmsales_details)
-      - [bronze.erp_cust_az12](#334--data-transformation---table-bronzeerpcust_az12)
-      - [bronze.erp_loc_a101](#335--data-transformation---table-bronzeerploc_a101)
-      - [bronze.erp_px_cat_g1v2](#336--data-transformation---table-bronzeerppxcatg1v2)
-    - [Script 3.4 Stored Procedure: Load Silver Layer](#script-34-stored-procedure-load-silver-layer-bronze---silver)
+    - [3.2 Data Transformation — Table: bronze.crm_cust_info](#321-table-bronzecrm_cust_info)
+    - [3.2.2 Data Transformation — Table: bronze.crm_prd_info](#322-data-transformation---table-bronzecrm_prd_info)
+    - [3.3.3 Data Transformation — Table: bronze.crm_sales_details](#333--data-transformation---table-bronzecrm_sales_details)
+    - [3.3.4 Data Transformation — Table: bronze.erp_cust_az12](#334--data-transformation---table-bronzeerp_cust_az12)
+    - [3.3.5 Data Transformation — Table: bronze.erp_loc_a101](#335--data-transformation---table-bronzeerp_loc_a101)
+    - [3.3.6 Data Transformation — Table: bronze.erp_px_cat_g1v2](#336--data-transformation---table-bronzeerp_px_cat_g1v2)
+    - [Script 3.4 Stored Procedure: Load Silver Layer (Bronze -> Silver)](#script-34-stored-procedure-load-silver-layer-bronze---silver)
     - [Script 3.5 Quality Checks - Silver Layer](#script-35-quality-checks---silver-layer)
-  - [🥇 Gold Layer](#-4-gold-layer)
+  - [4. Gold Layer](#-4-gold-layer)
     - [Script 4.1 Create Gold Views](#script-41-create-gold-views)
-      - [gold.dim_customers](#411-create-view-golddim_customers)
-      - [gold.dim_products](#412-create-view-golddim_products)
-      - [gold.fact_sales](#413-create-view-goldfact_sales)
-    - [Quality Checks - Gold Layer](#62-quality-checks---gold-layer)
+    - [4.1.1 Create View: gold.dim_customers](#411-create-view-golddim_customers)
+    - [4.1.2 Create View: gold.dim_products](#412-create-view-golddim_products)
+    - [4.1.3 Create View: gold.fact_sales](#413-create-view-goldfact_sales)
+    - [4.2 Quality Checks - Gold Layer](#42-quality-checks---gold-layer)
 
 
 ## 🌟 About Me
@@ -60,7 +64,7 @@ This project involves:
 
 ---
 
-## 🏗️ Data Architecture
+## 🏗 Data Architecture
 
 Designed a SQL Server Data Warehouse using the Medallion Architecture (Bronze/Silver/Gold) for raw ingestion, data standardisation, and analytics-ready data marts.
 
@@ -74,7 +78,7 @@ Designed a SQL Server Data Warehouse using the Medallion Architecture (Bronze/Si
 
 ## 🚀 Project Outline
 
-### 🔧 Building the Data Warehouse (Data Engineering)
+### 🔧 Part 1: Building the Data Warehouse (Data Engineering)
 
 #### Objective:
 Develop a modern data warehouse using Microsoft SQL Server to consolidate CRM and ERP sales data, enabling analytical reporting and informed decision-making.
@@ -88,7 +92,7 @@ Develop a modern data warehouse using Microsoft SQL Server to consolidate CRM an
 
 ---
 
-### 📊 BI: Analytics & Reporting (Data Analysis)
+### 📊 Part 2: BI Analytics & Reporting (Data Analysis)
 
 #### Objective:
 Develop SQL-based analytics to deliver detailed insights into:-
@@ -98,7 +102,7 @@ Develop SQL-based analytics to deliver detailed insights into:-
 
 These insights empower stakeholders with key business metrics, enabling strategic decision-making.  
 
---- 
+[View Part 2 of the Analytics Project here](https://github.com/faiceps/dwh-analytics). This repository builds on this Part 1 of Data Warehouse Project, adding a dedicated analytics layer to answer real-world business questions and support advanced reporting.
 
 ## Execution Flow:
 
@@ -155,7 +159,7 @@ Let's Begin!
 
 ---
 
-# 📊 Data Warehouse and Analytics Project : Full Project Showcase
+# 📊 Data Warehouse and Analytics Project Part 1 : Full Project Showcase
 
 ## 📂 1. Datasets (`/datasets`)  
 Two raw source data representing the CRM and ERP systems are ingested into the **Bronze layer**.  
@@ -2743,7 +2747,7 @@ WHERE p.product_key IS NULL OR c.customer_key IS NULL
 ```
 ---
 
-### 6.2 Quality Checks - Gold Layer
+### 4.2 Quality Checks - Gold Layer
 
 Script Purpose:
 This script performs quality checks to validate the integrity, consistency, 
@@ -2798,7 +2802,6 @@ ON		  f.product_key = p.product_key
 WHERE p.product_key IS NULL OR c.customer_key IS NULL
 ;
 ```
----
 
 
 ---
