@@ -12,7 +12,7 @@
   - [Execution Flow](#execution-flow)
   - [📂 Repository Structure](#-repository-structure)
 
-- [📊 Data Warehouse and Analytics Project Part 1 : Full Project Showcase](#-data-warehouse-and-analytics-project-part-1--full-project-showcase)
+- [Data Warehouse and Analytics Project Part 1 : Full Project Showcase](#data-warehouse-and-analytics-project-part-1--full-project-showcase)
   - [1. Datasets (`/datasets`)](#-1-datasets-datasets)
   - [2. Bronze Layer - Raw Ingestion (/scripts)](#-2-bronze-layer---raw-ingestion-scripts)
     - [Script 2.1 Create and Initialise Database and Schemas](#script-21-create-and-initialise-database-and-schemas)
@@ -36,6 +36,7 @@
     - [4.1.3 Create View: gold.fact_sales](#413-create-view-goldfact_sales)
     - [4.2 Quality Checks - Gold Layer](#42-quality-checks---gold-layer)
 
+---
 
 ## 🌟 About Me
 
@@ -61,6 +62,8 @@ This project involves:
 2. **ETL Pipelines**: Extracting, transforming, and loading data from source systems into the warehouse.
 3. **Data Modeling**: Developing fact and dimension tables optimized for analytical queries.
 4. **Analytics & Reporting**: Creating SQL-based reports and dashboards for actionable insights.
+
+[**View Part 2 of the Analytics Project here, which showcases a dedicated analytics layer to answer real-world business questions and support advanced reporting.**](https://github.com/faiceps/dwh-analytics)
 
 ---
 
@@ -102,7 +105,7 @@ Develop SQL-based analytics to deliver detailed insights into:-
 
 These insights empower stakeholders with key business metrics, enabling strategic decision-making.  
 
-[View Part 2 of the Analytics Project here](https://github.com/faiceps/dwh-analytics). This repository builds on this Part 1 of Data Warehouse Project, adding a dedicated analytics layer to answer real-world business questions and support advanced reporting.
+[**View Part 2 of the Analytics Project here**](https://github.com/faiceps/dwh-analytics). This repository builds on this Part 1 of Data Warehouse Project, adding a dedicated analytics layer to answer real-world business questions and support advanced reporting.
 
 ## Execution Flow:
 
@@ -159,7 +162,7 @@ Let's Begin!
 
 ---
 
-# 📊 Data Warehouse and Analytics Project Part 1 : Full Project Showcase
+# Data Warehouse and Analytics Project Part 1 : Full Project Showcase
 
 ## 📂 1. Datasets (`/datasets`)  
 Two raw source data representing the CRM and ERP systems are ingested into the **Bronze layer**.  
