@@ -589,6 +589,41 @@ Script Purpose:
 This script represents the cleansed and standardized table, which is then inserted into the Silver layer, ensuring referential integrity, consistency, and business-ready customer profiles.
 
 ```sql
+INSERT INTO silver.crm_cust_info (
+	cst_id,
+	cst_key,
+	cst_firstname,
+	cst_lastname,
+	cst_marital_status,
+	cst_gndr,
+	cst_create_date)
+
+SELECT
+cst_id,
+cst_key,
+TRIM(cst_firstname) AS cst_firstname,
+TRIM(cst_lastname) AS cst_lastname,
+CASE WHEN UPPER(TRIM(cst_marital_status)) = 'S' THEN 'Single'
+	 WHEN UPPER(TRIM(cst_marital_status)) = 'M' THEN 'Married'
+	 ELSE 'Unknown'
+END cst_marital_status,
+CASE WHEN UPPER(TRIM(cst_gndr)) = 'F' THEN 'Female'
+	 WHEN UPPER(TRIM(cst_gndr)) = 'M' THEN 'Male'
+	 ELSE 'Unknown'
+END cst_gndr,
+cst_create_date
+FROM (
+	SELECT
+	*,
+	ROW_NUMBER() OVER (PARTITION BY cst_id ORDER BY cst_create_date DESC) as flag_last
+	FROM bronze.crm_cust_info
+	WHERE cst_id IS NOT NULL
+)t WHERE flag_last = 1
+;
+```
+
+#### **Full Explanation:**
+```sql
 -- Check for NULL or Duplicate in Primary Key
 -- Expectation: No NULL or Duplicates
 
@@ -778,6 +813,37 @@ Script Purpose:
 
 This script represents the cleansed, standardised product dimension table ready to enter the Silver layer, ensuring referential integrity with ERP categories and supports accurate historical reporting.
 
+```sql
+INSERT INTO silver.crm_prd_info (
+	prd_id,
+	cat_id,
+	prd_key,
+	prd_nm,
+	prd_cost,
+	prd_line,
+	prd_start_dt,
+	prd_end_dt
+)
+SELECT
+	prd_id,
+	REPLACE(SUBSTRING(prd_key, 1, 5), '-', '_') AS cat_id,		
+	SUBSTRING(prd_key, 7, LEN(prd_key)) AS prd_key,
+	prd_nm,
+	COALESCE(prd_cost, 0) AS prd_cost,
+	CASE UPPER(TRIM(prd_line))
+		 WHEN 'M' THEN 'Mountain'
+		 WHEN 'R' THEN 'Road'
+		 WHEN 'S' THEN 'Other Sales'
+		 WHEN 'T' THEN 'Touring'
+		 ELSE 'Unknown' 
+	END AS prd_line,
+	CAST(prd_start_dt AS DATE) AS prd_start_dt,
+	CAST(LEAD(prd_start_dt) OVER (PARTITION BY prd_key ORDER BY prd_start_dt)-1 AS DATE) AS prd_end_dt
+FROM bronze.crm_prd_info
+;
+```
+
+#### **Full Explanation:**
 ```sql
 SELECT
 	prd_id,
@@ -1038,6 +1104,44 @@ Script Purpose:
 - Corrected NULL, zero, or negative values in sales, price, or quantity.
 - Conditional Logic to Re-calculate Accurate Sales and Prices with ABS(), NULLIF(), and case expressions.
 
+```sql
+INSERT INTO silver.crm_sales_details (
+	sls_ord_num,	
+	sls_prd_key,
+	sls_cust_id,
+	sls_order_dt,
+	sls_ship_dt,
+	sls_due_dt,
+	sls_sales,
+	sls_quantity,
+	sls_price
+)
+ SELECT
+	sls_ord_num,
+    sls_prd_key,
+    sls_cust_id,
+    CASE WHEN sls_order_dt = 0 OR LEN(sls_order_dt) != 8 THEN NULL
+         ELSE CAST(CAST(sls_order_dt AS VARCHAR) AS DATE)
+    END AS sls_order_dt,
+    CASE WHEN sls_ship_dt = 0 OR LEN(sls_ship_dt) != 8 THEN NULL
+         ELSE CAST(CAST(sls_ship_dt AS VARCHAR) AS DATE)
+    END AS sls_ship_dt,
+    CASE WHEN sls_due_dt = 0 OR LEN(sls_due_dt) != 8 THEN NULL
+         ELSE CAST(CAST(sls_due_dt AS VARCHAR) AS DATE)
+    END AS sls_due_dt,
+        CASE WHEN sls_sales <= 0 OR sls_sales IS NULL OR sls_sales != sls_quantity * ABS(sls_price)
+            THEN sls_quantity * ABS(sls_price)
+        ELSE sls_sales
+    END AS sls_sales,
+    sls_quantity,
+    CASE WHEN sls_price <= 0 OR sls_price IS NULL 
+            THEN sls_sales / NULLIF(sls_quantity, 0)        -- if negative, convert value to 0.
+        ELSE sls_price
+    END AS sls_price
+FROM bronze.crm_sales_details
+```
+
+#### **Full Explanation:**
 ```sql
 SELECT * FROM bronze.crm_sales_details
 
@@ -1334,6 +1438,29 @@ Script Purpose:
 - Abbreviations/Mixed Formats in gen are Standardised into Consistent Values (Female, Male, Unknown).
 
 ```sql
+INSERT INTO silver.erp_cust_az12 ( 
+	cid,
+	bdate,
+	gen
+)
+SELECT 
+	CASE WHEN cid LIKE 'NAS%' THEN SUBSTRING(cid, 4, LEN(cid))
+		 ELSE cid
+	END AS cid,
+	CASE WHEN bdate > GETDATE() THEN NULL
+		 ELSE bdate
+	END bdate,
+	CASE WHEN UPPER(TRIM(gen)) IN ('F', 'Female') THEN 'Female'
+		 WHEN UPPER(TRIM(gen)) IN ('M', 'Male') THEN 'Male'
+		 ELSE 'Unknown'
+	END AS gen
+FROM bronze.erp_cust_az12
+;
+```
+
+
+#### **Full Explanation:**
+```sql
 SELECT 
 	cid,
 	bdate,
@@ -1432,6 +1559,23 @@ Script Purpose:
 - Data Standardisation: country codes like DE are expanded to Germany, US/USA are normalized to United States, and empty or NULL values are replaced with Unknown.
 
 ```sql
+INSERT INTO silver.erp_loc_a101 (
+	cid,
+	cntry
+)
+SELECT
+	REPLACE(cid, '-', '') AS cid,
+	CASE WHEN TRIM(cntry) = 'DE' THEN 'Germany'
+		 WHEN TRIM(cntry) IN ('US', 'USA') THEN 'United States'
+		 WHEN TRIM(cntry) = '' OR cntry IS NULL THEN 'Unknown'
+		ELSE TRIM(cntry)
+	END AS cntry
+FROM bronze.erp_loc_a101
+;
+```
+
+#### **Full Explanation:**
+```sql
 SELECT
 	cid,
 	cntry
@@ -1493,6 +1637,7 @@ SELECT
 FROM bronze.erp_loc_a101
 ;
 ```
+
 ---
 ### 3.3.6  Data Transformation - Table: bronze.erp_px_cat_g1v2
 
@@ -1502,6 +1647,23 @@ Script Purpose:
 - Data Quality Checks by Trimming Unwanted Spaces from cat, subcat, and maintenance fields to ensure Consistent Formatting.
 - Low-cardinality fields were Validated for Consistency.
 
+```sql
+INSERT INTO silver.erp_px_cat_g1v2 (
+	id,
+	cat,
+	subcat,
+	maintenance
+)
+SELECT 
+	id,
+	cat,
+	subcat,
+	maintenance
+FROM bronze.erp_px_cat_g1v2
+;
+```
+
+#### **Full Explanation:**
 ```sql
 SELECT 
 	id,
@@ -2067,24 +2229,6 @@ Usage:
 These views can be queried directly for analytics and reporting.
 
 ```sql
-/*
-=====================================================================================
-DDL Script: Create Gold Views
-=====================================================================================
-Script Purpose:
-	This script creates views for the Gold layer in the data warehouse.
-	The gold layer represents the final dimension and fact tables (Star Schema).
-
-	Each view performs transformations and combines data from the Silver layer
-	to produce a clean, enriched, and business-ready dataaset.
-
-Usage:
-	- These views can be queried directly for analytics and reporting.
-=====================================================================================
-*/
-```
-
-```sql
 ----------------------------------------------------------------
 -- CREATE DIMENSIONS TABLE: gold.dim_customers
 ----------------------------------------------------------------
@@ -2200,6 +2344,30 @@ Script Purpose:
 5.	Generate surrogate key using ROW_NUMBER().
 6.	Create View: gold.dim_customers
 
+```sql
+CREATE VIEW gold.dim_customers AS 
+SELECT
+	ROW_NUMBER() OVER (ORDER BY cst_id) AS customer_key,
+	ci.cst_id							AS customer_id,
+	ci.cst_key							AS customer_number,
+	ci.cst_firstname					AS first_name,
+	ci.cst_lastname						AS last_name,
+	lo.cntry							AS country,
+	ci.cst_marital_status				AS marital_status,
+	CASE WHEN ci.cst_gndr != 'Unknown' THEN ci.cst_gndr		
+		ELSE COALESCE(ca.gen, 'Unknown')
+	END									AS gender,
+	ca.bdate							AS birthdate,
+	ci.cst_create_date					AS create_date
+FROM silver.crm_cust_info AS ci
+LEFT JOIN silver.erp_cust_az12 AS ca
+ON		  ci.cst_key = ca.cid
+LEFT JOIN silver.erp_loc_a101 AS lo
+ON		  ci.cst_key = lo.cid
+;
+```
+
+#### **Full Explanation:**
 ```sql
 -------------------------------------------------------------------
 --		1.	Join cst_key from silver.crm_cust_info
@@ -2467,6 +2635,28 @@ Script Purpose:
 6.	Create View: gold.dim_products .
 
 ```sql
+CREATE VIEW gold.dim_products AS
+SELECT 
+	ROW_NUMBER() OVER (ORDER BY prd_start_dt, pn.prd_key)	AS product_key,
+	pn.prd_id												AS product_id,
+	pn.prd_key												AS product_number,
+	pn.prd_nm												AS product_name,
+	pn.cat_id												AS category_id,
+	pc.cat													AS category,
+	pc.subcat												AS subcategory,
+	pc.maintenance,
+	pn.prd_cost												AS product_cost,
+	pn.prd_line												AS product_line,
+	pn.prd_start_dt											AS product_start_date
+FROM silver.crm_prd_info AS pn
+LEFT JOIN silver.erp_px_cat_g1v2 AS pc
+ON		  pn.cat_id = pc.id
+WHERE prd_end_dt IS NULL
+;
+```
+
+#### **Full Explanation:**
+```sql
 -------------------------------------------------------------------
 -- GOAL:	Use CURRENT up-to-date data of the products,
 --			filter out the past historical data of each product.
@@ -2612,6 +2802,27 @@ Script Purpose:
 5.	Sort columns into logical, readable groups.
 6.	Create View: gold.fact_sales .
 
+```sql
+CREATE VIEW gold.fact_sales AS
+SELECT
+	sd.sls_ord_num				AS order_number,	-- DIMENSION KEY	
+	pr.product_key,									-- DIMENSION KEY
+	cu.customer_key,								-- DIMENSION KEY
+	sd.sls_order_dt				AS order_date,		-- DATES
+	sd.sls_ship_dt				AS shipping_date,	-- DATES
+	sd.sls_due_dt				AS due_date,		-- DATES
+	sd.sls_sales				AS sales_amount,	-- MEASURES
+	sd.sls_quantity				AS quantity,		-- MEASURES
+	sd.sls_price				AS price			-- MEASURES
+FROM silver.crm_sales_details AS sd
+LEFT JOIN gold.dim_products AS pr
+ON		  sd.sls_prd_key = pr.product_number
+LEFT JOIN gold.dim_customers AS cu
+ON		  sd.sls_cust_id = cu.customer_id
+;
+```
+
+#### **Full Explanation:**
 ```sql
 ----------------------------------------------------------------------------------
 -- MAIN GOAL: JOIN TWO GOLD TABLES' SURROGATE KEYS
